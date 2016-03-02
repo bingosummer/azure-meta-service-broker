@@ -128,9 +128,13 @@ func MkDir(path string) bool {
 	return true
 }
 
-func ExecCommand(command string, args []string) []byte {
+func ExecCommand(command string, args []string, dir string) []byte {
 	cmd := exec.Command(command, args...)
-	bytes, _ := cmd.CombinedOutput()
-	fmt.Printf("%s", bytes)
-        return bytes
+	cmd.Dir = dir
+	bytes, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("%s\n", err)
+	}
+
+	return bytes
 }

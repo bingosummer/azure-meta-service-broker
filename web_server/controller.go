@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bingosummer/azure-meta-service-broker/model"
 	"github.com/bingosummer/azure-meta-service-broker/utils"
@@ -25,10 +26,16 @@ type Controller struct {
 }
 
 func NewController() *Controller {
-	serviceModules, catalog, err := loadServiceModules()
-	if err != nil {
-		return nil
-	}
+	serviceModules := make(map[string]string)
+	var catalog model.Catalog
+	serviceModules, catalog, _ = loadServiceModulesAndCatalogs()
+
+	ticker := time.NewTicker(time.Second * 30)
+	go func() {
+		for _ = range ticker.C {
+			serviceModules, catalog, _ = loadServiceModulesAndCatalogs()
+		}
+	}()
 
 	return &Controller{
 		serviceModules: serviceModules,
@@ -90,13 +97,13 @@ func (c *Controller) Provision(w http.ResponseWriter, r *http.Request) {
 
 	serviceId := instance.ServiceId
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
-	serviceModuleExecutable := serviceModulePath + string(os.PathSeparator) + "main"
+	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
 	args := []string{"-operation", "Provision", "-parameters", string(bytes)}
 	fmt.Println(args)
-	utils.ExecCommand(serviceModuleExecutable, args)
+	utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
 	response := model.CreateServiceInstanceResponse{
 		DashboardUrl: "",
@@ -120,13 +127,13 @@ func (c *Controller) Poll(w http.ResponseWriter, r *http.Request) {
 
 	serviceId := "2e2fc314-37b6-4587-8127-8f9ee8b33fea"
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
-	serviceModuleExecutable := serviceModulePath + string(os.PathSeparator) + "main"
+	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
 	args := []string{"-operation", "Poll", "-parameters", string(bytes)}
 	fmt.Println(args)
-	lastOperateionResponse := utils.ExecCommand(serviceModuleExecutable, args)
+	lastOperateionResponse := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
 	var response model.CreateLastOperationResponse
 
@@ -158,13 +165,13 @@ func (c *Controller) Deprovision(w http.ResponseWriter, r *http.Request) {
 
 	serviceId := r.URL.Query().Get("service_id")
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
-	serviceModuleExecutable := serviceModulePath + string(os.PathSeparator) + "main"
+	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
 	args := []string{"-operation", "Deprovision", "-parameters", string(bytes)}
 	fmt.Println(args)
-	utils.ExecCommand(serviceModuleExecutable, args)
+	utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
 	response := make(map[string]string)
 	utils.WriteResponse(w, http.StatusOK, response)
@@ -193,13 +200,13 @@ func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
 
 	serviceId := instance.ServiceId
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
-	serviceModuleExecutable := serviceModulePath + string(os.PathSeparator) + "main"
+	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
 	args := []string{"-operation", "Bind", "-parameters", string(bytes)}
 	fmt.Println(args)
-	credentialsBytes := utils.ExecCommand(serviceModuleExecutable, args)
+	credentialsBytes := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
 	var credentials model.Credentials
 
@@ -230,13 +237,13 @@ func (c *Controller) UnBind(w http.ResponseWriter, r *http.Request) {
 
 	serviceId := r.URL.Query().Get("service_id")
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
-	serviceModuleExecutable := serviceModulePath + string(os.PathSeparator) + "main"
+	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
 	args := []string{"-operation", "Unbind", "-parameters", string(bytes)}
 	fmt.Println(args)
-	utils.ExecCommand(serviceModuleExecutable, args)
+	utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
 	response := make(map[string]string)
 	utils.WriteResponse(w, http.StatusOK, response)
@@ -296,7 +303,7 @@ func validateApiVersion(actual, expected string) bool {
 	return true
 }
 
-func loadServiceModules() (map[string]string, model.Catalog, error) {
+func loadServiceModulesAndCatalogs() (map[string]string, model.Catalog, error) {
 	serviceModules := make(map[string]string)
 	var catalog model.Catalog
 
@@ -305,17 +312,21 @@ func loadServiceModules() (map[string]string, model.Catalog, error) {
 	files, _ := ioutil.ReadDir(serviceModulesPath)
 	for _, f := range files {
 		serviceModuleName := f.Name()
-		serviceModulePath := serviceModulesPath + string(os.PathSeparator) + serviceModuleName
+		serviceModulePath := utils.GetPath([]string{serviceModulesPath, serviceModuleName})
+		serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
+		args := []string{"-operation", "Catalog"}
+		catalogBytes := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
+
 		var serviceModuleCatalog model.Catalog
-		err := utils.ReadAndUnmarshal(&serviceModuleCatalog, serviceModulePath, "catalog.json")
-		if err != nil {
+		if err := json.Unmarshal(catalogBytes, &serviceModuleCatalog); err != nil {
 			return serviceModules, catalog, err
 		}
 
 		for _, service := range serviceModuleCatalog.Services {
 			catalog.Services = append(catalog.Services, service)
 			serviceModules[service.Id] = serviceModuleName
-			fmt.Println("Loading the service module " + serviceModuleName + "(" + service.Id + ")")
+			fmt.Println("Loading the service module " + serviceModuleName + "(" + service.Id + "), catalog:\n")
+			fmt.Println(string(catalogBytes))
 		}
 	}
 

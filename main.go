@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	conf "github.com/bingosummer/azure-meta-service-broker/config"
 	utils "github.com/bingosummer/azure-meta-service-broker/utils"
@@ -27,7 +26,6 @@ func main() {
 	if err != nil {
 		panic("Error loading config file...")
 	}
-	fmt.Println(conf.GetConfig().Port)
 
 	// Start Server
 	server := webs.NewServer()
