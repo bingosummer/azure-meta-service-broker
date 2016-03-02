@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+bin=$(dirname $0)
+
+instance_id=`cat $bin/instance_id`
+binding_id=`python -c 'import uuid; print str(uuid.uuid1())'`
+`echo $binding_id > $bin/binding_id`
+
+curl http://localhost:8001/v2/service_instances/$instance_id/service_bindings/$binding_id -u $authUsername:$authPassword -d '{
+  "plan_id":    "2",
+  "service_id": "2e2fc314-37b6-4587-8127-8f9ee8b33fea",
+  "app_guid":   "5",
+  "parameters": {}
+}' -X PUT -v

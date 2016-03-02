@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+bin=$(dirname $0)
+
+$bin/catalog
+$bin/provision
+$bin/poll
+sleep 90
+$bin/poll
+$bin/bind
+$bin/unbind
+$bin/deprovision

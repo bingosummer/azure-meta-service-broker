@@ -1,0 +1,15 @@
+---
+applications:
+- name: azure-meta-service-broker
+  instances: 1
+  buildpack: https://github.com/bingosummer/gitmodules-buildpack.git
+  command: azure-meta-service-broker
+  env:
+    subscriptionID: REPLACE-ME
+    tenantID: REPLACE-ME
+    clientID: REPLACE-ME
+    clientSecret: REPLACE-ME
+    authUsername: REPLACE-ME
+    authPassword: REPLACE-ME
+    storageAccountName: REPLACE-ME
+    location: REPLACE-ME

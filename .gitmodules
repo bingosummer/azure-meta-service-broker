@@ -1,0 +1,3 @@
+[submodule "service_modules/azurestorage"]
+	path = service_modules/azurestorage
+	url = https://github.com/bingosummer/azurestorage

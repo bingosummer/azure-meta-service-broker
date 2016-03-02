@@ -1,0 +1,13 @@
+bin/*
+
+# azurestorage
+service_modules/azurestorage/azure_client/
+service_modules/azurestorage/bin/
+service_modules/azurestorage/.git
+service_modules/azurestorage/.gitignore
+service_modules/azurestorage/Godeps/
+service_modules/azurestorage/LICENSE
+service_modules/azurestorage/main.go
+service_modules/azurestorage/model/
+service_modules/azurestorage/README.md
+service_modules/azurestorage/utils/

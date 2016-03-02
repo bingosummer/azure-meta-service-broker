@@ -1,0 +1,17 @@
+{
+	"ImportPath": "github.com/bingosummer/azure-meta-service-broker",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "c9e326e2bdec29039a3761c07bece13133863e1e"
+		}
+	]
+}
