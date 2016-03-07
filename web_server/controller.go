@@ -106,7 +106,7 @@ func (c *Controller) Provision(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
-	args := []string{"-operation", "Provision", "-parameters", string(bytes)}
+	args := []string{"AzureCloud", "Provision", string(bytes)}
 	fmt.Println(args)
 	utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
@@ -136,7 +136,7 @@ func (c *Controller) Poll(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
-	args := []string{"-operation", "Poll", "-parameters", string(bytes)}
+	args := []string{"AzureCloud", "Poll", string(bytes)}
 	fmt.Println(args)
 	lastOperateionResponse := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
@@ -174,7 +174,7 @@ func (c *Controller) Deprovision(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
-	args := []string{"-operation", "Deprovision", "-parameters", string(bytes)}
+	args := []string{"AzureCloud", "Deprovision", string(bytes)}
 	fmt.Println(args)
 	utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
@@ -209,7 +209,7 @@ func (c *Controller) Bind(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
-	args := []string{"-operation", "Bind", "-parameters", string(bytes)}
+	args := []string{"AzureCloud", "Bind", string(bytes)}
 	fmt.Println(args)
 	credentialsBytes := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
@@ -246,7 +246,7 @@ func (c *Controller) UnBind(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(serviceModuleExecutable)
 
 	bytes, _ := json.Marshal(instance)
-	args := []string{"-operation", "Unbind", "-parameters", string(bytes)}
+	args := []string{"AzureCloud", "Unbind", string(bytes)}
 	fmt.Println(args)
 	utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
@@ -319,7 +319,7 @@ func loadServiceModulesAndCatalogs() (map[string]string, model.Catalog, error) {
 		serviceModuleName := f.Name()
 		serviceModulePath := utils.GetPath([]string{serviceModulesPath, serviceModuleName})
 		serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
-		args := []string{"-operation", "Catalog"}
+		args := []string{"AzureCloud", "Catalog", "{}"}
 		catalogBytes := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
 
 		var serviceModuleCatalog model.Catalog
