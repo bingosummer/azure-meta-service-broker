@@ -23,11 +23,14 @@ const (
 type Controller struct {
 	serviceModules map[string]string
 	catalog        model.Catalog
+	instanceMap    map[string]string
 }
 
 func NewController() *Controller {
 	serviceModules := make(map[string]string)
 	var catalog model.Catalog
+	instanceMap := make(map[string]string)
+
 	serviceModules, catalog, _ = loadServiceModulesAndCatalogs()
 
 	ticker := time.NewTicker(time.Second * 30)
@@ -40,6 +43,7 @@ func NewController() *Controller {
 	return &Controller{
 		serviceModules: serviceModules,
 		catalog:        catalog,
+		instanceMap:    instanceMap,
 	}
 }
 
@@ -96,6 +100,7 @@ func (c *Controller) Provision(w http.ResponseWriter, r *http.Request) {
 	}
 
 	serviceId := instance.ServiceId
+	c.instanceMap[instanceId] = serviceId
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
 	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
@@ -125,7 +130,7 @@ func (c *Controller) Poll(w http.ResponseWriter, r *http.Request) {
 	instanceId := utils.ExtractVarsFromRequest(r, "instance_id")
 	instance.Id = instanceId
 
-	serviceId := "2e2fc314-37b6-4587-8127-8f9ee8b33fea"
+	serviceId := c.instanceMap[instanceId]
 	serviceModulePath := utils.GetPath([]string{"service_modules", c.serviceModules[serviceId]})
 	serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
 	fmt.Println(serviceModuleExecutable)
