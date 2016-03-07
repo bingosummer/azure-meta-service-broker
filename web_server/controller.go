@@ -321,10 +321,10 @@ func loadServiceModulesAndCatalogs() (map[string]string, model.Catalog, error) {
 		var serviceModuleExecutable string
 
 		serviceModulePackageJson := utils.GetPath([]string{serviceModulesPath, serviceModuleName, "package.json"})
-		if util.Exists(serviceModulePackageJson) {
-			serviceModuleExecutable := "node main.js"
+		if utils.Exists(serviceModulePackageJson) {
+			serviceModuleExecutable = "node main.js"
 		} else {
-			serviceModuleExecutable := "." + string(os.PathSeparator) + "main"
+			serviceModuleExecutable = "." + string(os.PathSeparator) + "main"
 		}
 		args := []string{"AzureCloud", "Catalog", "{}"}
 		catalogBytes := utils.ExecCommand(serviceModuleExecutable, args, serviceModulePath)
